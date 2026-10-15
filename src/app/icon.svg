@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="BMaxy">
+  <rect width="120" height="120" fill="#07082A"/>
+  <g transform="translate(12 12)">
+    <defs>
+      <linearGradient id="q" x1="91" y1="4" x2="43.5" y2="48" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#FFD84E"/>
+        <stop offset="1" stop-color="#FFC800"/>
+      </linearGradient>
+      <clipPath id="b">
+        <path clip-rule="evenodd" d="M10 5 H21 V69 H10 Z M21 5 H28 A23 16.5 0 0 1 28 38 H21 Z M21 15.5 H28 A12.5 6 0 0 1 28 27.5 H21 Z M21 38 H29 A26 15.5 0 0 1 29 69 H21 Z M21 48.5 H29 A15.5 5 0 0 1 29 58.5 H21 Z"/>
+      </clipPath>
+    </defs>
+
+    <g clip-path="url(#b)">
+      <path fill="#FFFFFF" d="M0 0 H96 V96 H0 Z"/>
+      <path fill="#A78BFF" d="M40 0 H96 V96 H22 Z"/>
+    </g>
+
+    <path fill="#A78BFF" d="M17 61 C27 55.5 39 55.5 45 60.5 L45 80 C39 75 27 75 17 81 Z"/>
+    <path fill="#A78BFF" d="M73 61 C63 55.5 51 55.5 45 60.5 L45 80 C51 75 63 75 73 81 Z"/>
+    <path fill="#FFFFFF" d="M20 58 C29 53 40 53 45 57.5 L45 76 C40 71.5 29 71.5 20 77 Z"/>
+    <path fill="#FFFFFF" d="M70 58 C61 53 50 53 45 57.5 L45 76 C50 71.5 61 71.5 70 77 Z"/>
+
+    <path fill="url(#q)" d="M91 4 C78 8.5 62.5 19 53 31 C48 37.5 45 43 43.5 47.5 L49.5 44.5 C60.5 39.5 72 30.5 80.5 20 C87 12 90.5 7 91 4 Z"/>
+    <path d="M87.5 7.5 C75 16 61 28 49 43.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="1.7" stroke-linecap="round"/>
+
+    <path fill="#A78BFF" d="M41.5 49.5 L52 41.5 L36.5 61.5 Z"/>
+    <path d="M37.6 60 L48 47" fill="none" stroke="#07082A" stroke-opacity="0.5" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+-- =============================================================================
+--  BMaxy — remover as constraints de ordenação duplicadas
+-- =============================================================================
+--
+--  Correção de um erro meu na `20260804200809_harden_password_flag_and_progress`.
+--
+--  Aquela migration criou `course_modules_order_unique` e `lessons_order_unique`
+--  partindo da premissa de que não existia unique nenhum em
+--  `(course_id, order_index)` / `(module_id, order_index)` — o comentário dela
+--  chega a dizer que "o código assumia uma constraint que nunca existiu".
+--
+--  A premissa estava ERRADA. As constraints existiam desde o
+--  `20260803202658_initial_schema`, declaradas inline na criação das tabelas
+--  (linhas 89 e 122), e o Postgres as nomeou automaticamente:
+--
+--      course_modules_course_id_order_index_key   UNIQUE (course_id, order_index)
+--      lessons_module_id_order_index_key          UNIQUE (module_id, order_index)
+--
+--  O `drop constraint if exists` daquela migration só procurava pelos nomes que
+--  ela própria ia criar, então não encontrou as originais e acabou adicionando
+--  um segundo unique idêntico em cada tabela. Resultado: dois índices únicos
+--  redundantes por tabela, cada INSERT/UPDATE pagando a verificação duas vezes.
+--
+--  Nada quebrou — duas constraints idênticas concordam sempre. O que se perde é
+--  clareza de schema e desempenho de escrita.
+--
+--  Ficam as ORIGINAIS, não as minhas: são as que o `initial_schema` declara, e
+--  portanto as que um banco novo vai ter. Manter as minhas obrigaria a
+--  migration inicial a mudar, que é justamente o que não se faz.
+--
+--  Consequência para o histórico: `move_module()`/`move_lesson()` sempre
+--  tiveram razão em trocar posições em três passos, e o retry de 23505 que
+--  existia em `createModuleAction` sempre teve o que tratar. A garantia de
+--  unicidade nunca esteve ausente — o que faltava era o cálculo atômico da
+--  posição, e isso a `20260804201803` resolveu de verdade.
+--
+-- =============================================================================
+
+alter table public.course_modules drop constraint if exists course_modules_order_unique;
+alter table public.lessons drop constraint if exists lessons_order_unique;

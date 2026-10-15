@@ -1,0 +1,647 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   TOKENS DE MARCA — BMaxy
+   Amostrados da logo oficial. Estes nove valores são a única fonte de verdade
+   de cor do projeto. Mudou aqui, mudou no site inteiro.
+   ========================================================================== */
+
+:root {
+  --void: #07082a; /* fundo principal — índigo quase preto */
+  --deep: #0b117c; /* azul profundo da logo — seções alternadas */
+  --royal: #101c9c; /* azul principal da marca */
+  --violet: #7d5de4; /* violeta da logo — acento secundário, uso mínimo */
+  --gold: #ffc800; /* dourado da pena — ACENTO PRINCIPAL */
+  --gold-hi: #ffd84e; /* topo do gradiente dourado */
+  --bone: #f7f6fb; /* fundo das seções claras */
+  --ash: #a9a6c8; /* texto secundário sobre escuro — 8.3:1 sobre --void */
+  --line: #232152; /* divisórias */
+
+  /* Derivados necessários para acessibilidade — não são cores novas de marca:
+     --violet sobre --void dá 4.2:1, abaixo do AA para texto. Para qualquer
+     violeta que precise ser lido, usamos --violet-hi (7.2:1). O --violet puro
+     fica restrito a filetes, molduras e ao gradiente do rodapé.
+     --ink e --ink-soft são os equivalentes escuros para as seções em --bone. */
+  --violet-hi: #a78bff;
+  --ink: #07082a; /* 18.1:1 sobre --bone */
+  --ink-soft: #4a4770; /* 8.0:1 sobre --bone */
+  --line-light: #dedbec; /* divisória nas seções claras */
+
+  /* --deep é a cor da logo, mas em seção inteira, sangrando de borda a borda,
+     ele vira um bloco de azul primário que briga com a direção de arte (as duas
+     referências são quase pretas com um acento só) — e a fotografia em duotone
+     violeta some dentro dele. Esta é a mesma cor composta a 55% sobre --void:
+     continua lendo como "a seção azul da marca", com muito mais elegância e
+     contraste (--ash sobe de 6.5:1 para 8.3:1).
+     PARA VOLTAR AO LITERAL DO BRIEFING: troque `bg-deep-surface` por `bg-deep`
+     em Stats.tsx, About.tsx e Course.tsx. Nada mais muda. */
+  --deep-surface: #090d57;
+
+  /* Curva única de todo o movimento do site. Exposta ao Tailwind como
+     `ease-out-expo` no bloco @theme abaixo. */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---------------------------------------------------------------------
+     PLATAFORMA (/aluno, /admin)
+
+     A landing é uma peça editorial: seções inteiras alternando --void,
+     --deep-surface e --bone, com muito respiro. Um painel de trabalho pede
+     outra coisa — superfícies próximas entre si, hierarquia por elevação e
+     não por troca de cor. Estes quatro tokens existem só para isso; a
+     landing não usa nenhum deles.
+
+     --panel      cartão/painel sobre --void
+     --panel-hi   o mesmo em hover, ou um nível acima na hierarquia
+     --panel-line borda entre superfícies próximas (mais clara que --line,
+                  que some quando os dois lados são escuros parecidos)
+     --warm-white títulos. Branco puro sobre índigo escuro fica azulado e
+                  clínico; este é levemente quente e continua com 17:1.
+     ------------------------------------------------------------------- */
+  --panel: #0c0e35;
+  --panel-hi: #12154a;
+  --panel-line: #2a2860;
+  --warm-white: #f7f5f1;
+}
+
+@theme inline {
+  --color-void: var(--void);
+  --color-deep: var(--deep);
+  --color-deep-surface: var(--deep-surface);
+  --color-royal: var(--royal);
+  --color-violet: var(--violet);
+  --color-violet-hi: var(--violet-hi);
+  --color-gold: var(--gold);
+  --color-gold-hi: var(--gold-hi);
+  --color-bone: var(--bone);
+  --color-ash: var(--ash);
+  --color-line: var(--line);
+  --color-line-light: var(--line-light);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-panel: var(--panel);
+  --color-panel-hi: var(--panel-hi);
+  --color-panel-line: var(--panel-line);
+  --color-warm-white: var(--warm-white);
+
+  --ease-out-expo: var(--ease-expo);
+
+  --font-display: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+}
+
+/* =============================================================================
+   BASE
+   ========================================================================== */
+
+@layer base {
+  * {
+    min-width: 0;
+  }
+
+  html {
+    /* O <html> também recebe --void: é ele que pinta a área de overscroll do
+       iOS, acima do topo e abaixo do rodapé. */
+    background-color: var(--void);
+    scroll-behavior: smooth;
+    scroll-padding-top: 72px; /* altura do header fixo no mobile */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (min-width: 768px) {
+    html {
+      scroll-padding-top: 96px;
+    }
+  }
+
+  body {
+    background-color: var(--void);
+    color: #ffffff;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--gold);
+    color: var(--void);
+  }
+
+  /* Foco sempre visível, em qualquer fundo. */
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  /* Sobre a faixa dourada o outline dourado sumiria. */
+  .on-gold :focus-visible {
+    outline-color: var(--void);
+  }
+
+  /* <main> só recebe foco por programa, vindo do "pular para o conteúdo".
+     Um contorno em volta da página inteira seria ruído — o salto já é óbvio. */
+  main:focus {
+    outline: none;
+  }
+
+  img,
+  svg {
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      /* Sem zerar os delays, os itens do menu (que usam fill-mode: both e
+         delay em cascata) ficariam invisíveis até o delay vencer. */
+      animation-delay: 0ms !important;
+      transition-duration: 0.001ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* =============================================================================
+   LAYOUT
+
+   As variações por breakpoint ficam DENTRO do bloco @utility (o Tailwind v4
+   aceita @media aninhado). Se ficassem fora, viveriam sem camada e passariam a
+   vencer qualquer utilitário do Tailwind — `lg:px-0` deixaria de anular o
+   padding de .container-site, e isso seria uma armadilha silenciosa.
+   ========================================================================== */
+
+@utility container-site {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 20px;
+
+  @media (min-width: 768px) {
+    padding-inline: 48px;
+  }
+}
+
+/* Espaçamento vertical entre seções: generoso, cresce com a tela. */
+@utility section-y {
+  padding-block: 100px;
+
+  @media (min-width: 768px) {
+    padding-block: 140px;
+  }
+  @media (min-width: 1280px) {
+    padding-block: 200px;
+  }
+}
+
+/* Grade dos Números — 2 colunas no celular E no tablet, 4 só a partir de
+   1024px. O corte é em 1024 e não em 768 porque a 768px exatos as quatro
+   legendas ("IDIOMAS DE ATENDIMENTO" é a pior) quebram em duas linhas e
+   encostam na divisória seguinte.
+
+   As divisórias vivem AQUI e não em variantes arbitrárias no JSX porque a
+   regra depende de duas coisas ao mesmo tempo: o breakpoint e a posição da
+   célula dentro da linha. Toda célula ganha filete em cima e à esquerda; a
+   PRIMEIRA de cada linha perde o da esquerda — e "primeira de cada linha"
+   muda de 2n+1 para 4n+1 quando a grade passa de 2 para 4 colunas.
+
+   O padding-right existe pelo mesmo motivo do padding-left: sem ele, uma
+   legenda longa vai até o filete da coluna vizinha.
+
+   Os dois filetes têm opacidades diferentes de propósito: o horizontal
+   sustenta a linha (18%), o vertical só separa (12%) e não deve competir com
+   os números.
+
+   ATENÇÃO: a matemática nth-child assume exatamente 2 e 4 colunas. Se um dia
+   a quantidade de métricas mudar a ponto de exigir outra grade, os dois
+   seletores abaixo precisam mudar junto. */
+@utility stats-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  & > * {
+    border-top: 1px solid color-mix(in srgb, #ffffff 18%, transparent);
+    border-left: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+    padding-left: 18px;
+    padding-right: 12px;
+  }
+  & > *:nth-child(2n + 1) {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    & > * {
+      padding-left: 32px;
+      padding-right: 20px;
+    }
+    & > *:nth-child(2n + 1) {
+      border-left: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+      padding-left: 32px;
+    }
+    & > *:nth-child(4n + 1) {
+      border-left: 0;
+      padding-left: 0;
+    }
+  }
+}
+
+/* Largura máxima de texto corrido. */
+@utility measure {
+  max-width: 62ch;
+}
+
+/* =============================================================================
+   TIPOGRAFIA
+
+   Todos os tamanhos de display usam clamp(). Os tetos e pisos não são chute:
+   foram calculados com as larguras reais dos glifos do Archivo 800 contra a
+   coluna em que cada texto vive, em 320 / 375 / 768 / 1024 / 1440 / 1920px.
+   Ao trocar um texto de display, refaça a conta ou teste em 375px.
+   ========================================================================== */
+
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* Sem `color` de propósito: a cor vem sempre de uma classe utilitária no JSX.
+   Duas regras da mesma camada com a mesma especificidade dependeriam da ordem
+   de emissão do CSS, não da ordem do atributo class — e aí `text-white/70`
+   poderia perder para o valor padrão sem nenhum aviso. */
+@utility label-eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+
+  @media (min-width: 768px) {
+    font-size: 0.75rem; /* 12px */
+  }
+}
+
+/* h1 — largura inteira até lg, coluna de 8/12 a partir de lg.
+   Referência: "POR ESCREVER" = 8.06em em Archivo 800. */
+@utility t-hero {
+  font-size: clamp(2.375rem, 10.6vw, 5rem);
+
+  @media (min-width: 1024px) {
+    font-size: clamp(4.5rem, 6.9vw, 6.5rem);
+  }
+}
+
+@utility t-section {
+  font-size: clamp(2.25rem, 6vw, 4rem);
+}
+
+/* Até lg o título ocupa a linha inteira; a partir de lg ele divide a linha com
+   a descrição e a seta, e cabe numa fatia de 5/12 — daí o teto menor.
+   Referência: "CURSO SEU LIVRO" = 9.40em. */
+@utility t-service {
+  font-size: clamp(2rem, 5.5vw, 3.5rem);
+
+  @media (min-width: 1024px) {
+    font-size: clamp(2rem, 3.6vw, 3.25rem);
+  }
+}
+
+/* Texto da faixa rolante. */
+@utility t-marquee {
+  font-size: clamp(1.5rem, 4vw, 2.75rem);
+}
+
+@utility t-stat {
+  font-size: clamp(3rem, 8vw, 6rem);
+}
+
+@utility t-course {
+  font-size: clamp(3rem, 12vw, 5rem);
+
+  @media (min-width: 1024px) {
+    font-size: clamp(3.75rem, 6.2vw, 6.5rem);
+  }
+}
+
+@utility t-price {
+  font-size: clamp(2.75rem, 7vw, 4.25rem);
+}
+
+/* Título da faixa da newsletter — texto longo, precisa de teto mais baixo. */
+@utility t-band {
+  font-size: clamp(1.75rem, 4.2vw, 3.25rem);
+}
+
+@utility t-quote {
+  font-size: clamp(1.5rem, 3.4vw, 2.5rem);
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+}
+
+/* "GHOSTWRITING" = 8.32em, e ainda divide a linha com o número (33px). */
+@utility t-menu {
+  font-size: clamp(1.875rem, 9.25vw, 4rem);
+}
+
+/* Palavra gigante do rodapé — vai quase de borda a borda em qualquer largura.
+   "BMAXY" = 3.75em. O teto de 22.25rem é o que a mantém dentro do container
+   acima de 1532px, onde o container já parou de crescer. */
+@utility t-wordmark {
+  font-size: clamp(3.25rem, 23vw, 22.25rem);
+  line-height: 0.78;
+  letter-spacing: -0.035em;
+}
+
+/* =============================================================================
+   REVELAÇÃO AO ROLAR
+   Marcado com data-reveal; o observador vive em <RevealObserver />.
+   O stagger entre irmãos entra por --reveal-delay.
+   ========================================================================== */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+  transition:
+    opacity 600ms var(--ease-expo),
+    transform 600ms var(--ease-expo);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+[data-reveal][data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* =============================================================================
+   FAIXA ROLANTE (CSS puro, sem JS)
+   A trilha contém duas cópias idênticas; -50% fecha o loop sem emenda.
+   ========================================================================== */
+
+@keyframes marquee-x {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-x 40s linear infinite;
+}
+
+.marquee-host:hover .marquee,
+.marquee-host:focus-within .marquee {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* =============================================================================
+   DUOTONE
+   Fotografia tratada em --void / --violet, como pede a direção de arte.
+   O filtro <filter id="bmaxy-duotone"> é injetado uma única vez no layout.
+   ========================================================================== */
+
+.duotone img {
+  filter: url(#bmaxy-duotone) contrast(1.05);
+}
+
+/* Se o filtro SVG não resolver (impressão, navegador antigo), a foto ainda
+   fica coerente com a paleta em vez de destoar em cores originais. */
+@supports not (filter: url(#bmaxy-duotone)) {
+  .duotone img {
+    filter: grayscale(1) contrast(1.1);
+  }
+}
+
+/* =============================================================================
+   PEÇAS RECORRENTES
+   ========================================================================== */
+
+/* Gradiente da pena — o ÚNICO gradiente permitido, e só em peças pequenas. */
+@utility quill-gradient {
+  background-image: linear-gradient(160deg, var(--gold-hi), var(--gold));
+}
+
+/* Palavra do rodapé: gradiente --royal → --violet aplicado no texto.
+   É elemento gráfico, não conteúdo: vem com aria-hidden no componente. */
+@utility wordmark-gradient {
+  background-image: linear-gradient(100deg, var(--royal) 8%, var(--violet) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Sublinhado que cresce da esquerda no hover — usado nos links de texto. */
+@utility link-underline {
+  background-image: linear-gradient(var(--gold), var(--gold));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 400ms var(--ease-expo);
+}
+.link-underline:hover,
+.link-underline:focus-visible,
+/* Quando o alvo clicável é maior que o texto (para dar área de toque de 44px),
+   o sublinhado fica num <span> interno e quem recebe o hover é o pai. */
+.group:hover .link-underline,
+.group:focus-visible .link-underline {
+  background-size: 100% 1px;
+}
+
+/* Barra fixa do topo.
+   Só a propriedade sem prefixo: o Lightning CSS (dentro do @tailwindcss/postcss)
+   colapsa pares de prefixo e mantém apenas o último declarado — escrever o
+   -webkit- depois fazia o Firefox ficar sem desfoque nenhum. Ele prefixa
+   sozinho de acordo com os targets do build. */
+.header-scrolled {
+  background-color: color-mix(in srgb, var(--void) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom-color: var(--line);
+}
+
+/* Entrada do painel de menu em tela cheia. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes menu-item-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.menu-panel {
+  animation: menu-in 240ms var(--ease-expo) both;
+}
+.menu-item {
+  animation: menu-item-in 560ms var(--ease-expo) both;
+}
+
+/* =============================================================================
+   PLATAFORMA — movimento e esqueletos
+
+   Animações curtas de propósito: num painel de trabalho a pessoa repete a
+   mesma navegação dezenas de vezes por dia, e o que encanta na primeira vez
+   irrita na vigésima. Nada aqui passa de 260ms.
+   ========================================================================== */
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Entrada do conteúdo ao trocar de página dentro da plataforma. */
+.panel-enter {
+  animation: panel-in 260ms var(--ease-expo) both;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: none;
+  }
+}
+.drawer-panel {
+  animation: drawer-in 220ms var(--ease-expo) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fade-in 180ms linear both;
+}
+
+/* A sidebar da plataforma é `fixed`, então o conteúdo precisa reservar a
+   largura dela — senão ela cobre o começo de cada linha (foi exatamente o que
+   aconteceu: "VISÃO GERAL" aparecia como "SÃO GERAL").
+
+   O estado do recolhimento vive no cliente, dentro de PlatformNav. Em vez de
+   subir esse estado até o shell e tornar tudo Client Component, o nav marca
+   `data-nav-collapsed` no <html> e o padding responde por CSS. Antes da
+   hidratação vale o padrão expandido — o mesmo que a própria sidebar assume. */
+@media (min-width: 1024px) {
+  #plataforma-conteudo {
+    padding-left: 16rem;
+    transition: padding-left 200ms var(--ease-expo);
+  }
+  :root[data-nav-collapsed="1"] #plataforma-conteudo {
+    padding-left: 4.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #plataforma-conteudo {
+    transition: none;
+  }
+}
+
+/* Esqueleto de carregamento. O brilho atravessa o bloco em vez de piscar:
+   piscar chama atenção para a espera, atravessar sugere movimento. */
+@keyframes skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--panel-hi);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, #ffffff 7%, transparent),
+    transparent
+  );
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-enter,
+  .drawer-panel,
+  .fade-in {
+    animation: none;
+  }
+  .skeleton::after {
+    animation: none;
+  }
+}
+
+/* Indicador de rolagem do hero. */
+@keyframes scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+.scroll-hint-line {
+  animation: scroll-hint 2.4s var(--ease-expo) infinite;
+}

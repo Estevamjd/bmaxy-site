@@ -1,0 +1,112 @@
+name: CI
+
+# Com `push: ["**"]` + `pull_request`, todo commit numa branch com PR aberto
+# disparava DUAS execuções do mesmo commit — o dobro de build e de E2E para o
+# mesmo resultado. Agora: o PR é o que valida branch de trabalho, e o push da
+# main cobre o que entra depois do merge (inclusive merge feito pela interface
+# do GitHub, que não gera evento de PR).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo cancela a execução anterior da mesma branch. Sem isto, três
+# pushes seguidos rodam três vezes o build e o E2E — e só o último importa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 24: os testes usam `--experimental-strip-types` e o `WebSocket`
+      # global, e o runner de E2E usa `AbortSignal.timeout`. É a mesma major
+      # usada no desenvolvimento (v24.14.0) — CI numa major diferente da de
+      # quem escreve o código só descobre incompatibilidade na hora errada.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Testes unitários
+        run: npm run test:unit
+
+      # O build NÃO precisa das chaves do Supabase: `isSupabaseConfigured()`
+      # devolve false sem elas e a plataforma renderiza o aviso de "em
+      # configuração" em vez de quebrar. Foi assim que o projeto nasceu, de
+      # propósito — e é o que permite este CI existir sem nenhum secret.
+      #
+      # Desde que o catálogo de livros passou a ser lido do banco, este step
+      # virou também o TESTE da separação entre "não configurado" e "falhou":
+      # `generateStaticParams` de /livros/[slug] consulta o Supabase, e sem a
+      # guarda de `src/lib/dal/catalog.ts` o build para em "Failed to collect
+      # page data". Não há teste unitário equivalente — `unstable_cache` só
+      # existe dentro do Next —, então é aqui que a regressão apareceria.
+      - name: Build de produção (sem configuração de Supabase)
+        run: npm run build
+
+      # --audit-level=high: falha em alta e crítica, não em moderada. Moderada
+      # em dependência de desenvolvimento não justifica travar o merge — vira
+      # ruído e, com ruído, todo mundo aprende a ignorar o CI. O Dependabot
+      # cuida das moderadas no ritmo dele.
+      - name: Auditoria de dependências de produção
+        run: npm audit --omit=dev --audit-level=high
+
+      # ---------------------------------------------------------------------
+      #  E2E — precisa de um build COM configuração, e por isso rebuilda
+      # ---------------------------------------------------------------------
+      #  O build acima roda sem variável nenhuma de propósito: é ele que prova
+      #  a promessa de que a aplicação sobe sem Supabase. Mas é exatamente essa
+      #  ausência que fazia o E2E falhar em quatro asserções — /entrar e
+      #  /recuperar-senha caem no aviso de "plataforma em configuração", e o
+      #  teste procura "Entrar" e "Log In" que nunca aparecem.
+      #
+      #  Fornecer as variáveis só ao `next start` NÃO resolveria: `NEXT_PUBLIC_*`
+      #  é embutido no bundle em tempo de build. Verificado neste projeto — o
+      #  valor aparece dentro de .next/server. Daí o rebuild aqui.
+      #
+      #  As três variáveis são FICTÍCIAS e existem só neste step:
+      #    - a URL é sintaticamente válida e aponta para um ref que não existe;
+      #    - a publishable key é um literal de teste, não uma chave;
+      #    - nenhuma delas alcança produção, que lê do painel da Vercel.
+      #
+      #  SUPABASE_SECRET_KEY continua ausente, e é para continuar: o E2E
+      #  percorre páginas públicas e telas de login sem autenticar ninguém.
+      #  Se um dia precisar de sessão real, isso é conversa com secrets, não
+      #  uma variável a mais aqui.
+      - name: Teste de navegação client-side
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://e2e-nao-existe.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_test-key
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          CHROME_PATH: /usr/bin/google-chrome
+          BASE_URL: http://localhost:3000
+          # As variáveis acima são sintaticamente válidas e apontam para um
+          # projeto que NÃO EXISTE. A aplicação sobe, as telas de login
+          # renderizam — e o catálogo de livros vem vazio, porque não há banco
+          # do outro lado.
+          #
+          # Isto avisa o teste de navegação de qual dos dois mundos ele está
+          # medindo. Sem a variável, ele exigiria pelo menos um livro e
+          # falharia num sistema correto; com ela, exige o catálogo VAZIO e
+          # passa a provar que a vitrine sobe sem banco em vez de quebrar.
+          #
+          # Quantos livros existem e se cada um está íntegro é pergunta para
+          # `npm run test:db`, que fala com o banco real fora do CI.
+          E2E_SEM_BANCO: "1"
+        run: |
+          npm run build
+          npm run test:e2e:ci
